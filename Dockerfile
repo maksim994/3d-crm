@@ -5,8 +5,8 @@ FROM node:20-alpine AS frontend-builder
 
 WORKDIR /app
 
-# Копируем package.json и устанавливаем зависимости frontend
-COPY package*.json ./
+# Копируем package.json и package-lock.json для установки зависимостей frontend
+COPY package.json package-lock.json ./
 RUN npm ci
 
 # Копируем исходники frontend
@@ -20,8 +20,8 @@ FROM node:20-alpine AS backend-builder
 
 WORKDIR /app/server
 
-# Копируем package.json сервера и устанавливаем зависимости
-COPY server/package*.json ./
+# Копируем package.json и package-lock.json сервера для установки зависимостей
+COPY server/package.json server/package-lock.json ./
 RUN npm ci --production
 
 # Stage 3: Production image
@@ -34,7 +34,7 @@ RUN apk add --no-cache python3 make g++
 
 # Копируем backend зависимости и код
 COPY --from=backend-builder /app/server/node_modules ./node_modules
-COPY server/package*.json ./
+COPY server/package.json ./
 COPY server/src ./src
 
 # Копируем собранный frontend в папку public сервера

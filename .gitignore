@@ -11,6 +11,7 @@ node_modules
 dist
 dist-ssr
 *.local
+# Важно: package-lock.json НЕ должен быть в .gitignore для Docker builds!
 
 # Environment
 .env
