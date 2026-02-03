@@ -42,7 +42,8 @@ app.get('/api/health', (req, res) => {
 
 // В production режиме отдаём статические файлы и обрабатываем SPA routing
 if (isProduction) {
-  const publicPath = path.join(__dirname, '../../public');
+  // В Docker: WORKDIR /app, код в /app/src, статика в /app/public
+  const publicPath = path.join(__dirname, '../public');
   
   // Статические файлы
   app.use(express.static(publicPath));
@@ -64,6 +65,6 @@ app.listen(PORT, '0.0.0.0', () => {
   console.log(`📡 API доступен на http://localhost:${PORT}/api`);
   console.log(`🌍 Режим: ${isProduction ? 'PRODUCTION' : 'DEVELOPMENT'}`);
   if (isProduction) {
-    console.log(`📦 Статические файлы из: ${path.join(__dirname, '../../public')}`);
+    console.log(`📦 Статические файлы из: ${path.join(__dirname, '../public')}`);
   }
 });
