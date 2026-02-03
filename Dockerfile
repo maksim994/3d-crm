@@ -7,7 +7,8 @@ WORKDIR /app
 
 # Копируем package.json и package-lock.json для установки зависимостей frontend
 COPY package.json package-lock.json ./
-RUN npm ci
+# Важно: устанавливаем ВСЕ зависимости (включая dev) для сборки
+RUN npm ci --include=dev
 
 # Копируем исходники frontend
 COPY . .
