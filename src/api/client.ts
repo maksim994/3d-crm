@@ -1,14 +1,31 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 class ApiClient {
+  private getAuthToken(): string | null {
+    return localStorage.getItem('authToken');
+  }
+
   private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
+    const token = this.getAuthToken();
+    
     const response = await fetch(`${API_URL}${endpoint}`, {
       ...options,
+      credentials: 'include',
       headers: {
         'Content-Type': 'application/json',
+        ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...options?.headers,
       },
     });
+
+    // Обработка 401 - перенаправление на логин
+    if (response.status === 401) {
+      if (this.getAuthToken()) {
+        localStorage.removeItem('authToken');
+        window.location.href = '/login';
+      }
+      throw new Error('Требуется авторизация');
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ error: 'Ошибка сервера' }));

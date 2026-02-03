@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { useStore } from '@/store/useStore';
 
@@ -12,16 +12,61 @@ import { Packaging } from '@/pages/Packaging';
 import { Printers } from '@/pages/Printers';
 import { Settings } from '@/pages/Settings';
 import { LogisticsCalculator } from '@/pages/LogisticsCalculator';
+import { Login } from '@/pages/Login';
+
+// Компонент для защищенных маршрутов
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const isAuthenticated = !!localStorage.getItem('authToken');
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  return <>{children}</>;
+}
 
 function App() {
   const initialize = useStore((state) => state.initialize);
   const isLoading = useStore((state) => state.isLoading);
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
 
   useEffect(() => {
-    initialize();
-  }, [initialize]);
+    // Проверяем авторизацию при загрузке
+    const checkAuth = async () => {
+      const token = localStorage.getItem('authToken');
+      
+      if (token) {
+        try {
+          const response = await fetch('/api/auth/check', {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+            },
+            credentials: 'include',
+          });
 
-  if (isLoading) {
+          if (!response.ok) {
+            // Токен невалиден, удаляем
+            localStorage.removeItem('authToken');
+          }
+        } catch (error) {
+          localStorage.removeItem('authToken');
+        }
+      }
+      
+      setIsAuthChecked(true);
+    };
+
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (isAuthChecked && localStorage.getItem('authToken')) {
+      initialize();
+    }
+  }, [initialize, isAuthChecked]);
+
+  if (!isAuthChecked || (isLoading && localStorage.getItem('authToken'))) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="text-center">
@@ -34,19 +79,102 @@ function App() {
 
   return (
     <BrowserRouter>
-      <Layout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/models" element={<Models />} />
-          <Route path="/models/new" element={<ModelEdit />} />
-          <Route path="/models/:id" element={<ModelEdit />} />
-          <Route path="/archive" element={<Archive />} />
-          <Route path="/calculator" element={<LogisticsCalculator />} />
-          <Route path="/packaging" element={<Packaging />} />
-          <Route path="/printers" element={<Printers />} />
-          <Route path="/settings" element={<Settings />} />
-        </Routes>
-      </Layout>
+      <Routes>
+        {/* Публичный маршрут - логин */}
+        <Route path="/login" element={<Login />} />
+
+        {/* Защищенные маршруты */}
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Dashboard />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/models"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Models />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/models/new"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ModelEdit />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/models/:id"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ModelEdit />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/archive"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Archive />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/calculator"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <LogisticsCalculator />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/packaging"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Packaging />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/printers"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Printers />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Settings />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

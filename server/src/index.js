@@ -3,10 +3,13 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cookieParser from 'cookie-parser';
 import settingsRoutes from './routes/settings.js';
 import printersRoutes from './routes/printers.js';
 import packagingRoutes from './routes/packaging.js';
 import modelsRoutes from './routes/models.js';
+import authRoutes from './routes/auth.js';
+import { requireAuth } from './middleware/auth.js';
 
 dotenv.config();
 
@@ -23,14 +26,12 @@ app.use(cors({
   credentials: true
 }));
 app.use(express.json({ limit: '50mb' })); // Для больших base64 изображений
+app.use(cookieParser());
 
-// API Routes
-app.use('/api/settings', settingsRoutes);
-app.use('/api/printers', printersRoutes);
-app.use('/api/packaging', packagingRoutes);
-app.use('/api/models', modelsRoutes);
+// Auth routes (не требуют авторизации)
+app.use('/api/auth', authRoutes);
 
-// Health check
+// Health check (не требует авторизации)
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'ok', 
@@ -39,6 +40,12 @@ app.get('/api/health', (req, res) => {
     database: process.env.DATABASE_PATH || 'default'
   });
 });
+
+// API Routes (требуют авторизации)
+app.use('/api/settings', requireAuth, settingsRoutes);
+app.use('/api/printers', requireAuth, printersRoutes);
+app.use('/api/packaging', requireAuth, packagingRoutes);
+app.use('/api/models', requireAuth, modelsRoutes);
 
 // В production режиме отдаём статические файлы и обрабатываем SPA routing
 if (isProduction) {

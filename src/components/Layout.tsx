@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   Box, 
@@ -7,9 +7,12 @@ import {
   Calculator,
   Package, 
   Printer, 
-  Settings 
+  Settings,
+  LogOut,
+  User
 } from 'lucide-react';
 import { cn } from '@/utils/cn';
+import { Button } from './ui/Button';
 
 interface LayoutProps {
   children: ReactNode;
@@ -27,6 +30,21 @@ const navigation = [
 
 export function Layout({ children }: LayoutProps) {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      });
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      localStorage.removeItem('authToken');
+      navigate('/login');
+    }
+  };
 
   return (
     <div className="flex h-screen bg-background">
@@ -61,7 +79,19 @@ export function Layout({ children }: LayoutProps) {
           </nav>
 
           {/* Footer */}
-          <div className="border-t p-4">
+          <div className="border-t p-4 space-y-3">
+            <div className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground">
+              <User className="h-4 w-4" />
+              <span>Администратор</span>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full justify-start"
+              onClick={handleLogout}
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Выйти
+            </Button>
             <p className="text-xs text-muted-foreground text-center">
               v1.0.0 • Made with ❤️
             </p>
