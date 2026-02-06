@@ -135,6 +135,7 @@ export function createEmptyModel(settings: Settings): Omit<Model, 'id' | 'articl
     },
     printTime: 0,
     printerId: '',
+    categoryId: '',
     plasticPrice: 0,
     consumablesPercent: settings.defaultConsumablesPercent,
     defectPercent: settings.defaultDefectPercent,

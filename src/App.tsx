@@ -2,14 +2,17 @@ import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { useStore } from '@/store/useStore';
+import { ToastProvider } from '@/components/ui/Toast';
 
 // Pages
 import { Dashboard } from '@/pages/Dashboard';
 import { Models } from '@/pages/Models';
 import { ModelEdit } from '@/pages/ModelEdit';
+import { ModelView } from '@/pages/ModelView';
 import { Archive } from '@/pages/Archive';
 import { Packaging } from '@/pages/Packaging';
 import { Printers } from '@/pages/Printers';
+import { Categories } from '@/pages/Categories';
 import { Settings } from '@/pages/Settings';
 import { LogisticsCalculator } from '@/pages/LogisticsCalculator';
 import { Login } from '@/pages/Login';
@@ -78,8 +81,9 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
+    <ToastProvider>
+      <BrowserRouter>
+        <Routes>
         {/* Публичный маршрут - логин */}
         <Route path="/login" element={<Login />} />
 
@@ -125,6 +129,16 @@ function App() {
           }
         />
         <Route
+          path="/models/:id/view"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <ModelView />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/archive"
           element={
             <ProtectedRoute>
@@ -165,6 +179,16 @@ function App() {
           }
         />
         <Route
+          path="/categories"
+          element={
+            <ProtectedRoute>
+              <Layout>
+                <Categories />
+              </Layout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/settings"
           element={
             <ProtectedRoute>
@@ -174,8 +198,9 @@ function App() {
             </ProtectedRoute>
           }
         />
-      </Routes>
-    </BrowserRouter>
+        </Routes>
+      </BrowserRouter>
+    </ToastProvider>
   );
 }
 

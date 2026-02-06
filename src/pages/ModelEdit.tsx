@@ -8,9 +8,11 @@ import { Label } from '@/components/ui/Label';
 import { Textarea } from '@/components/ui/Textarea';
 import { Checkbox } from '@/components/ui/Checkbox';
 import { Collapsible } from '@/components/ui/Collapsible';
+import { useToast } from '@/components/ui/Toast';
 import { calculateModelFinances, formatCurrency, formatNumber } from '@/utils/calculations';
 import { generateContent } from '@/utils/ai';
 import { createEmptyModel } from '@/utils/storage';
+import { api } from '@/api/client';
 import { 
   ArrowLeft, 
   Save, 
@@ -20,12 +22,14 @@ import {
   Sparkles, 
   Loader2,
   ExternalLink,
-  Calculator 
+  Calculator,
+  Eye
 } from 'lucide-react';
 
 export function ModelEdit() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   
   const getModel = useStore((state) => state.getModel);
   const addModel = useStore((state) => state.addModel);
@@ -36,6 +40,8 @@ export function ModelEdit() {
   const packaging = useStore((state) => state.packaging);
   const printers = useStore((state) => state.printers);
   const settings = useStore((state) => state.settings);
+  
+  const [categories, setCategories] = useState<any[]>([]);
 
   const isNew = !id;
   const existingModel = id ? getModel(id) : null;
@@ -52,6 +58,20 @@ export function ModelEdit() {
   // AI генерация
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingField, setGeneratingField] = useState<string | null>(null);
+
+  // Загрузка категорий
+  useEffect(() => {
+    loadCategories();
+  }, []);
+  
+  const loadCategories = async () => {
+    try {
+      const data = await api.getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   // Обновление формы при изменении настроек
   useEffect(() => {
@@ -80,15 +100,17 @@ export function ModelEdit() {
 
   const handleSave = () => {
     if (!formData.name.trim()) {
-      alert('Введите название модели');
+      showToast('Введите название модели', 'error');
       return;
     }
 
     if (isNew) {
       const newModel = addModel(formData);
+      showToast('Модель успешно создана', 'success');
       navigate(`/models/${newModel.id}`);
     } else if (id) {
       updateModel(id, formData);
+      showToast('Модель успешно обновлена', 'success');
     }
   };
 
@@ -173,6 +195,12 @@ export function ModelEdit() {
           </Button>
           {!isNew && (
             <>
+              <Link to={`/models/${id}/view`}>
+                <Button variant="outline">
+                  <Eye className="mr-2 h-4 w-4" />
+                  Просмотр
+                </Button>
+              </Link>
               <Button variant="outline" onClick={handleDuplicate}>
                 <Copy className="mr-2 h-4 w-4" />
                 Дублировать
@@ -374,6 +402,23 @@ export function ModelEdit() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="categoryId">Категория</Label>
+              <select
+                id="categoryId"
+                value={formData.categoryId}
+                onChange={(e) => handleChange('categoryId', e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+              >
+                <option value="">Без категории</option>
+                {categories.map((category: any) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="printerId">Принтер</Label>
               <select

@@ -134,6 +134,35 @@ class ApiClient {
     });
   }
 
+  // Categories
+  async getCategories() {
+    return this.request('/categories');
+  }
+
+  async getCategory(id: string) {
+    return this.request(`/categories/${id}`);
+  }
+
+  async createCategory(category: any) {
+    return this.request('/categories', {
+      method: 'POST',
+      body: JSON.stringify(category),
+    });
+  }
+
+  async updateCategory(id: string, category: any) {
+    return this.request(`/categories/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(category),
+    });
+  }
+
+  async deleteCategory(id: string) {
+    return this.request(`/categories/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Health check
   async healthCheck() {
     return this.request('/health');

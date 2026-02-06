@@ -23,6 +23,17 @@ db.exec(`
   );
 `);
 
+// Таблица категорий
+db.exec(`
+  CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    description TEXT,
+    color TEXT DEFAULT '#3B82F6',
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`);
+
 // Таблица принтеров
 db.exec(`
   CREATE TABLE IF NOT EXISTS printers (
@@ -64,6 +75,7 @@ db.exec(`
     dimension_height REAL NOT NULL DEFAULT 0,
     print_time REAL NOT NULL DEFAULT 0,
     printer_id TEXT,
+    category_id TEXT,
     plastic_price REAL NOT NULL DEFAULT 0,
     consumables_percent REAL NOT NULL DEFAULT 10,
     defect_percent REAL NOT NULL DEFAULT 5,
@@ -89,7 +101,8 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     
     FOREIGN KEY (printer_id) REFERENCES printers(id) ON DELETE SET NULL,
-    FOREIGN KEY (packaging_id) REFERENCES packaging(id) ON DELETE SET NULL
+    FOREIGN KEY (packaging_id) REFERENCES packaging(id) ON DELETE SET NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(id) ON DELETE SET NULL
   );
 `);
 

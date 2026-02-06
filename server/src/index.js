@@ -8,6 +8,7 @@ import settingsRoutes from './routes/settings.js';
 import printersRoutes from './routes/printers.js';
 import packagingRoutes from './routes/packaging.js';
 import modelsRoutes from './routes/models.js';
+import categoriesRoutes from './routes/categories.js';
 import authRoutes from './routes/auth.js';
 import { requireAuth } from './middleware/auth.js';
 
@@ -45,6 +46,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/settings', requireAuth, settingsRoutes);
 app.use('/api/printers', requireAuth, printersRoutes);
 app.use('/api/packaging', requireAuth, packagingRoutes);
+app.use('/api/categories', requireAuth, categoriesRoutes);
 app.use('/api/models', requireAuth, modelsRoutes);
 
 // В production режиме отдаём статические файлы и обрабатываем SPA routing

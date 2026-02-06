@@ -18,6 +18,7 @@ export interface Model {
   };
   printTime: number; // часы
   printerId: string;
+  categoryId: string; // Категория модели
   plasticPrice: number; // руб/кг
   consumablesPercent: number;
   defectPercent: number;

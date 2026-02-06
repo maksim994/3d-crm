@@ -6,7 +6,8 @@ import {
   Archive, 
   Calculator,
   Package, 
-  Printer, 
+  Printer,
+  Tag,
   Settings,
   LogOut,
   User
@@ -23,6 +24,7 @@ const navigation = [
   { name: 'Модели', href: '/models', icon: Box },
   { name: 'Архив', href: '/archive', icon: Archive },
   { name: 'Калькулятор WB', href: '/calculator', icon: Calculator },
+  { name: 'Категории', href: '/categories', icon: Tag },
   { name: 'Упаковка', href: '/packaging', icon: Package },
   { name: 'Принтеры', href: '/printers', icon: Printer },
   { name: 'Настройки', href: '/settings', icon: Settings },
