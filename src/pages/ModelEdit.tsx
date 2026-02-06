@@ -417,6 +417,11 @@ export function ModelEdit() {
                   </option>
                 ))}
               </select>
+              {categories.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Сначала <Link to="/categories" className="underline">создайте категории</Link>
+                </p>
+              )}
             </div>
             
             <div className="space-y-2">

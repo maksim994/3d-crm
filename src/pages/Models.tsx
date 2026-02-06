@@ -1,11 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { calculateModelFinances, formatCurrency } from '@/utils/calculations';
-import { Plus, Search, Archive, Eye, Pencil, Copy, Trash2 } from 'lucide-react';
+import { Plus, Search, Archive, Eye, Pencil, Copy, Trash2, Tag, X } from 'lucide-react';
+import { api } from '@/api/client';
 
 export function Models() {
   const models = useStore((state) => state.getActiveModels());
@@ -18,6 +19,22 @@ export function Models() {
   
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<'name' | 'date' | 'profit'>('date');
+  const [categoryFilter, setCategoryFilter] = useState<string>('');
+  const [categories, setCategories] = useState<any[]>([]);
+  
+  // Загрузка категорий
+  useEffect(() => {
+    loadCategories();
+  }, []);
+  
+  const loadCategories = async () => {
+    try {
+      const data = await api.getCategories();
+      setCategories(data);
+    } catch (error) {
+      console.error('Error loading categories:', error);
+    }
+  };
 
   const filteredAndSortedModels = useMemo(() => {
     let filtered = models;
@@ -31,6 +48,11 @@ export function Models() {
           m.article.toLowerCase().includes(query) ||
           m.description.toLowerCase().includes(query)
       );
+    }
+    
+    // Фильтр по категории
+    if (categoryFilter) {
+      filtered = filtered.filter((m) => m.categoryId === categoryFilter);
     }
 
     // Сортировка
@@ -58,7 +80,7 @@ export function Models() {
     }
 
     return sorted;
-  }, [models, searchQuery, sortBy, packaging, printers, settings]);
+  }, [models, searchQuery, sortBy, categoryFilter, packaging, printers, settings]);
 
   const handleDuplicate = (id: string) => {
     if (confirm('Создать копию модели?')) {
@@ -97,25 +119,56 @@ export function Models() {
       </div>
 
       {/* Поиск и фильтры */}
-      <div className="flex gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Поиск по названию, артикулу или описанию..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+      <div className="space-y-4">
+        <div className="flex gap-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Поиск по названию, артикулу или описанию..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <select
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[180px]"
+          >
+            <option value="">Все категории</option>
+            {categories.map((category) => (
+              <option key={category.id} value={category.id}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="rounded-md border border-input bg-background px-3 py-2 text-sm min-w-[180px]"
+          >
+            <option value="date">По дате добавления</option>
+            <option value="name">По названию</option>
+            <option value="profit">По прибыльности</option>
+          </select>
         </div>
-        <select
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value as any)}
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="date">По дате добавления</option>
-          <option value="name">По названию</option>
-          <option value="profit">По прибыльности</option>
-        </select>
+        
+        {/* Активные фильтры */}
+        {categoryFilter && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Фильтры:</span>
+            <div className="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-sm">
+              <Tag className="h-3 w-3" />
+              {categories.find((c) => c.id === categoryFilter)?.name || 'Категория'}
+              <button
+                onClick={() => setCategoryFilter('')}
+                className="ml-1 hover:text-blue-900"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Список моделей */}
@@ -136,7 +189,7 @@ export function Models() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {filteredAndSortedModels.map((model) => {
             const pkg = packaging.find((p) => p.id === model.packagingId);
             const printer = printers.find((p) => p.id === model.printerId);
@@ -146,7 +199,7 @@ export function Models() {
               <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <CardContent className="p-0">
                   {/* Изображение */}
-                  <div className="aspect-video bg-muted relative">
+                  <div className="aspect-3/2 bg-muted relative">
                     {model.images.length > 0 ? (
                       <img
                         src={model.images[0]}
@@ -168,7 +221,21 @@ export function Models() {
                           {model.name}
                         </h3>
                       </div>
-                      <p className="text-xs text-muted-foreground">{model.article}</p>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <p className="text-xs text-muted-foreground">{model.article}</p>
+                        {model.categoryId && categories.find((c) => c.id === model.categoryId) && (
+                          <span 
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium"
+                            style={{
+                              backgroundColor: categories.find((c) => c.id === model.categoryId)?.color + '20',
+                              color: categories.find((c) => c.id === model.categoryId)?.color
+                            }}
+                          >
+                            <Tag className="h-3 w-3" />
+                            {categories.find((c) => c.id === model.categoryId)?.name}
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     {model.description && (
@@ -200,9 +267,9 @@ export function Models() {
                         </Button>
                       </Link>
                       <Link to={`/models/${model.id}`} className="flex-1">
-                        <Button variant="outline" size="sm" className="w-full">
+                        <Button variant="ghost" size="sm" className="w-full">
                           <Pencil className="mr-2 h-3 w-3" />
-                          Изменить
+                          
                         </Button>
                       </Link>
                       <Button
