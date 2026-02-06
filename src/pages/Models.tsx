@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Card, CardContent } from '@/components/ui/Card';
 import { calculateModelFinances, formatCurrency } from '@/utils/calculations';
-import { Plus, Search, Archive, ExternalLink, Copy, Trash2 } from 'lucide-react';
+import { Plus, Search, Archive, Eye, Pencil, Copy, Trash2 } from 'lucide-react';
 
 export function Models() {
   const models = useStore((state) => state.getActiveModels());
@@ -193,10 +193,16 @@ export function Models() {
 
                     {/* Действия */}
                     <div className="flex gap-2 pt-2">
+                      <Link to={`/models/${model.id}/view`} className="flex-1">
+                        <Button variant="outline" size="sm" className="w-full">
+                          <Eye className="mr-2 h-3 w-3" />
+                          Просмотр
+                        </Button>
+                      </Link>
                       <Link to={`/models/${model.id}`} className="flex-1">
                         <Button variant="outline" size="sm" className="w-full">
-                          <ExternalLink className="mr-2 h-3 w-3" />
-                          Открыть
+                          <Pencil className="mr-2 h-3 w-3" />
+                          Изменить
                         </Button>
                       </Link>
                       <Button

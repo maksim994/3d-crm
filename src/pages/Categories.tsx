@@ -35,7 +35,7 @@ export function Categories() {
 
   const loadCategories = async () => {
     try {
-      const data = await api.get('/categories');
+      const data = await api.getCategories();
       setCategories(data);
     } catch (error) {
       showToast('Ошибка загрузки категорий', 'error');
@@ -49,10 +49,10 @@ export function Categories() {
 
     try {
       if (editingCategory) {
-        await api.put(`/categories/${editingCategory.id}`, formData);
+        await api.updateCategory(editingCategory.id, formData);
         showToast('Категория обновлена', 'success');
       } else {
-        await api.post('/categories', formData);
+        await api.createCategory(formData);
         showToast('Категория создана', 'success');
       }
 
@@ -67,7 +67,7 @@ export function Categories() {
     if (!confirm('Удалить категорию?')) return;
 
     try {
-      await api.delete(`/categories/${id}`);
+      await api.deleteCategory(id);
       showToast('Категория удалена', 'success');
       await loadCategories();
     } catch (error: any) {
@@ -94,7 +94,7 @@ export function Categories() {
     setIsModalOpen(true);
   };
 
-  const closeModal() {
+  const closeModal = () => {
     setIsModalOpen(false);
     setEditingCategory(null);
   };

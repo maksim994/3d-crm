@@ -3,71 +3,15 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Pencil, Package, Printer, Tag, Calendar, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
-import { api } from '@/api/client';
+import { useStore } from '@/store/useStore';
 
-interface Model {
-  id: string;
-  article: string;
-  name: string;
-  description: string | null;
-  specifications: string | null;
-  source_link: string | null;
-  weight: number;
-  is_multicolor: number;
-  dimension_length: number;
-  dimension_width: number;
-  dimension_height: number;
-  print_time: number;
-  printer_id: string | null;
-  category_id: string | null;
-  plastic_price: number;
-  consumables_percent: number;
-  defect_percent: number;
-  packaging_id: string | null;
-  wb_commission: number;
-  wb_logistics: number;
-  wb_product_link: string | null;
-  ozon_commission: number;
-  ozon_logistics: number;
-  ozon_product_link: string | null;
-  desired_margin: number;
-  created_at: string;
-  updated_at: string;
-}
+import { Model } from '@/types';
 
 export function ModelView() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [model, setModel] = useState<Model | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    if (id) {
-      loadModel();
-    }
-  }, [id]);
-
-  const loadModel = async () => {
-    try {
-      const data = await api.get(`/models/${id}`);
-      setModel(data);
-    } catch (error) {
-      console.error('Error loading model:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto"></div>
-          <p className="text-muted-foreground">Загрузка...</p>
-        </div>
-      </div>
-    );
-  }
+  const getModel = useStore((state) => state.getModel);
+  const model = id ? getModel(id) : null;
 
   if (!model) {
     return (
@@ -129,17 +73,17 @@ export function ModelView() {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Время печати</p>
-                <p className="font-medium">{model.print_time} ч</p>
+                <p className="font-medium">{model.printTime} ч</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Размеры</p>
                 <p className="font-medium">
-                  {model.dimension_length} × {model.dimension_width} × {model.dimension_height} мм
+                  {model.dimensions.length} × {model.dimensions.width} × {model.dimensions.height} мм
                 </p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Многоцветная</p>
-                <p className="font-medium">{model.is_multicolor ? 'Да' : 'Нет'}</p>
+                <p className="font-medium">{model.isMulticolor ? 'Да' : 'Нет'}</p>
               </div>
             </div>
           </Card>
@@ -150,17 +94,17 @@ export function ModelView() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Комиссия</p>
-                <p className="font-medium">{model.wb_commission}%</p>
+                <p className="font-medium">{model.wbCommission}%</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Логистика</p>
-                <p className="font-medium">{model.wb_logistics} ₽</p>
+                <p className="font-medium">{model.wbLogistics} ₽</p>
               </div>
-              {model.wb_product_link && (
+              {model.wbProductLink && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Ссылка на товар</p>
                   <a
-                    href={model.wb_product_link}
+                    href={model.wbProductLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline inline-flex items-center gap-1"
@@ -179,17 +123,17 @@ export function ModelView() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Комиссия</p>
-                <p className="font-medium">{model.ozon_commission}%</p>
+                <p className="font-medium">{model.ozonCommission}%</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Логистика</p>
-                <p className="font-medium">{model.ozon_logistics} ₽</p>
+                <p className="font-medium">{model.ozonLogistics} ₽</p>
               </div>
-              {model.ozon_product_link && (
+              {model.ozonProductLink && (
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Ссылка на товар</p>
                   <a
-                    href={model.ozon_product_link}
+                    href={model.ozonProductLink}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline inline-flex items-center gap-1"
@@ -209,43 +153,43 @@ export function ModelView() {
           <Card className="p-6">
             <h2 className="text-lg font-semibold mb-4">Информация</h2>
             <div className="space-y-3">
-              {model.category_id && (
+              {model.categoryId && (
                 <div className="flex items-center gap-2 text-sm">
                   <Tag className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Категория:</span>
-                  <span className="font-medium">ID: {model.category_id}</span>
+                  <span className="font-medium">ID: {model.categoryId}</span>
                 </div>
               )}
-              {model.printer_id && (
+              {model.printerId && (
                 <div className="flex items-center gap-2 text-sm">
                   <Printer className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Принтер:</span>
-                  <span className="font-medium">ID: {model.printer_id}</span>
+                  <span className="font-medium">ID: {model.printerId}</span>
                 </div>
               )}
-              {model.packaging_id && (
+              {model.packagingId && (
                 <div className="flex items-center gap-2 text-sm">
                   <Package className="h-4 w-4 text-muted-foreground" />
                   <span className="text-muted-foreground">Упаковка:</span>
-                  <span className="font-medium">ID: {model.packaging_id}</span>
+                  <span className="font-medium">ID: {model.packagingId}</span>
                 </div>
               )}
               <div className="flex items-center gap-2 text-sm">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
                 <span className="text-muted-foreground">Создана:</span>
                 <span className="font-medium">
-                  {new Date(model.created_at).toLocaleDateString('ru-RU')}
+                  {new Date(model.createdAt).toLocaleDateString('ru-RU')}
                 </span>
               </div>
             </div>
           </Card>
 
           {/* Ссылка на источник */}
-          {model.source_link && (
+          {model.sourceLink && (
             <Card className="p-6">
               <h2 className="text-lg font-semibold mb-4">Источник</h2>
               <a
-                href={model.source_link}
+                href={model.sourceLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:underline inline-flex items-center gap-1 text-sm"
