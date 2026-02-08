@@ -1,11 +1,20 @@
 import crypto from 'crypto';
+import dotenv from 'dotenv';
+
+// Загружаем переменные окружения
+dotenv.config();
 
 // Хранилище сессий (в production лучше использовать Redis)
 const sessions = new Map();
 
-// Учетные данные (в production хранить в .env с хешированием)
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'madmin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'wUQH4Twc';
+// Учетные данные администратора из переменных окружения
+if (!process.env.ADMIN_USERNAME || !process.env.ADMIN_PASSWORD) {
+  console.error('⚠️  ADMIN_USERNAME и ADMIN_PASSWORD должны быть установлены в .env файле!');
+  process.exit(1);
+}
+
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 // Генерация токена сессии
 function generateSessionToken() {
