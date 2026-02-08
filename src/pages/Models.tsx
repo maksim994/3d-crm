@@ -199,7 +199,7 @@ export function Models() {
               <Card key={model.id} className="overflow-hidden hover:shadow-lg transition-shadow">
                 <CardContent className="p-0">
                   {/* Изображение */}
-                  <div className="aspect-3/2 bg-muted relative">
+                  <div className="bg-muted relative" style={{ height: '300px' }}>
                     {model.images.length > 0 ? (
                       <img
                         src={model.images[0]}
